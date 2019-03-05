@@ -17,6 +17,10 @@ if(process.env.NODE_ENV === "production"){
   app.use(express.static(path.join(__dirname, 'build')));
 }
 
+app.get('*', (request, response) => {
+	response.sendFile(path.join(__dirname, 'build', 'index.html'));
+});
+
 // Client connects
 // Store object with unique client ID and mouse x,y positions
 // Listen for new mouse positions from clients
