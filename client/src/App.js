@@ -14,22 +14,6 @@ import { LoadImage } from './Loaders'
 import crosshair from './img/crosshair_15.png'
 import bullethole from './img/bullet_hole_small.png'
 
-const Circles = ({ players }) => {
-  return players.map((player, i) => {
-    if (!player.position) return null;
-    const { x, y } = player.position;
-    return <circle
-      key={i}
-      cx={x}
-      cy={y}
-      r="40"
-      stroke="green"
-      strokeWidth="4"
-      fill="yellow"
-    />
-  })
-}
-
 class App extends Component {
   constructor(props) {
     super(props);
@@ -66,7 +50,7 @@ class App extends Component {
     })
 
     subscribeToMyID(myID => {
-      this.setState({myID});
+      this.setState({ myID });
     })
 
     this.setState({ canvasContext: this.canvas.getContext('2d') })
@@ -133,12 +117,17 @@ class App extends Component {
   }
 
   renderCrosshairs = () => {
-    const { players, crosshairIMG, canvasContext } = this.state;
+    const { players, crosshairIMG, canvasContext, myID } = this.state;
     const { width, height } = crosshairIMG;
 
     players.map((player, i) => {
       if (!player.position) return null;
-      const { x, y } = player.position;
+      var { x, y } = player.position;
+      // Show local position of your own cursor
+      if (player.id === myID) {
+        x = this.state.myCursorPos.x;
+        y = this.state.myCursorPos.y;
+      }
       canvasContext.drawImage(crosshairIMG, x - width / 2, y - height / 2);
     })
   }
@@ -191,7 +180,11 @@ class App extends Component {
 
         <ol>
           {scoreboard.map(score => {
-            return <li>{`Player ID: ${score} ${score === this.state.myID ? '<--- You' : ''}`}</li>
+            return (
+              <li key={score}>
+                {`Player ID: ${score} ${score === this.state.myID ? '<--- You' : ''}`}
+              </li>
+            );
           })}
         </ol>
       </>
