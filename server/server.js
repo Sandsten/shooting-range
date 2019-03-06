@@ -16,10 +16,10 @@ console.log(process.env.NODE_ENV)
 if(process.env.NODE_ENV === "production"){
   app.use(express.static(path.join(__dirname, 'build')));
 }
-console.log(path.join(__dirname, 'build', 'index.html'))
-app.get('*', (request, response) => {
-	response.sendFile(path.join(__dirname, 'build/', 'index.html'));
-});
+
+// app.get('*', (request, response) => {
+// 	response.sendFile(path.join(__dirname, 'build/', 'index.html'));
+// });
 
 // Client connects
 // Store object with unique client ID and mouse x,y positions
