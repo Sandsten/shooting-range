@@ -39,3 +39,15 @@ export const sendMousePosition = mousePosition => {
 export const sendMouseClickPosition = mouseClickPosition => {
   socket.emit('mouseClickPosition', mouseClickPosition);
 }
+
+export const sendNicknameToServer = nickname => {
+  socket.emit('nickname', nickname);
+}
+
+export const unsubscribeFromAll = () => {
+  socket.removeAllListeners("newMousePositions");
+  socket.removeAllListeners("shotsFired");
+  socket.removeAllListeners("scoreboard");
+  socket.removeAllListeners("newTarget");
+  socket.removeAllListeners("myID");
+}

@@ -1,38 +1,69 @@
 import React, { Component } from 'react';
+import styled from 'styled-components'
 
 import {
   subscribeToShotsFired,
   sendMousePosition,
   subscribeToMousePositions,
   sendMouseClickPosition,
+  sendNicknameToServer,
   subscribeToNewTarget,
   subscribeToScoreboard,
-  subscribeToMyID
+  subscribeToMyID,
+  unsubscribeFromAll
 } from './api'
 
 import {
   renderBulletHoles,
   renderCrosshairs,
   renderTarget
-} from './RenderFunctions';
+} from './Helpers/RenderFunctions';
 
-import { LoadImage } from './Loaders'
+import { LoadImage } from './Helpers/Loaders'
+import NameInput from './Components/NameInput'
 
 import crosshair from './img/crosshair_15.png'
 import bullethole from './img/bullet_hole_small_2.png'
+
+const Grid = styled.div`
+  height: 100vh;
+
+  display: grid;
+  align-items: center;
+  justify-items: start;
+
+  grid-template-columns: 100px ${1920 * .6 + 5}px auto;
+  grid-template-rows: 1fr auto 1fr;
+  grid-template-areas: ". . ." ". gameboard scoreboard" ". . .";
+`
+
+const Scoreboard = styled.ol`
+  grid-area: scoreboard;
+  justify-self: start;
+  align-self: start;
+`
+
+const Gameboard = styled.canvas`
+  grid-area: gameboard;
+  background-color: gray;
+  cursor: none;
+  border: 5px solid black;
+`
 
 class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
       myID: '',
+      myNickname: null,
       players: [],
       bulletHoles: [],
+      haveIFiredThisRound: false,
       scoreboard: [],
       target: null,
       myCursorPos: { x: 0, y: 0 },
       sendToServer: null,
-      updateFrequency: 1000 / 120,
+      updateFrequency: 1000 / 60,
       canvasContext: null,
       crosshairIMG: new Image(),
       bulletHoleIMG: new Image()
@@ -43,7 +74,10 @@ class App extends Component {
     // Subscribe to all server events
     subscribeToMousePositions(players => { this.setState({ players }); });
     subscribeToShotsFired(bulletHoles => { this.setState({ bulletHoles }) });
-    subscribeToNewTarget(target => { this.setState({ target }); })
+    subscribeToNewTarget(target => {
+      this.setState({ target },
+        () => this.setState({ haveIFiredThisRound: false }));
+    })
     subscribeToScoreboard(scoreboard => { this.setState({ scoreboard }); })
     subscribeToMyID(myID => { this.setState({ myID }); })
 
@@ -58,11 +92,19 @@ class App extends Component {
     this.canvas.height = 1080 * .6;
   }
 
+  componentWillUnmount() {
+    unsubscribeFromAll();
+  }
+
   // When client clicks in the canvas
   handleMouseDown = (e) => {
     // Get exact position when mouse button is clicked
     const mPos = this.getMousePositionInCanvas(e);
-    sendMouseClickPosition(mPos);
+    // Only send mouse clicks if client has a nickname
+    if (this.state.myNickname && !this.state.haveIFiredThisRound) {
+      sendMouseClickPosition(mPos);
+      this.setState({ haveIFiredThisRound: true });
+    }
   }
 
   startTrackingMousePos = () => {
@@ -107,6 +149,12 @@ class App extends Component {
     sendMousePosition(this.state.myCursorPos);
   }
 
+  sendNicknameToServer = () => {
+    console.log("SENDING")
+    sendNicknameToServer(this.state.myNickname)
+  }
+
+
   renderGraphics = () => {
     renderTarget(this.state);
     renderBulletHoles(this.state);
@@ -122,28 +170,30 @@ class App extends Component {
     this.renderGraphics();
 
     return (
-      <>
-        <canvas
-          style={{
-            backgroundColor: 'gray',
-            cursor: 'none'
-          }}
+      <Grid>
+        <NameInput
+          onSubmit={
+            name => this.setState({ myNickname: name },
+              () => this.sendNicknameToServer())
+          }
+          myNickname={this.state.myNickname}
+        />
+        <Gameboard
           onMouseDown={this.handleMouseDown}
           onMouseEnter={this.startTrackingMousePos}
           onMouseLeave={this.stopTrackingMousePos}
           ref={ref => this.canvas = ref}
         />
-        <input type="text" name="" id="" style={{ position: "fixed" }} />
-        <ol>
-          {scoreboard.map(score => {
+        <Scoreboard>
+          {scoreboard.map(player => {
             return (
-              <li key={score}>
-                {`Player ID: ${score} ${score === this.state.myID ? '<--- You' : ''}`}
+              <li key={player.id}>
+                {`${player.score} : ${player.id === this.state.myID ? '(You)' : ''} ${player.nickname} `}
               </li>
             );
           })}
-        </ol>
-      </>
+        </Scoreboard>
+      </Grid>
     );
   }
 }
