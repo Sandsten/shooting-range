@@ -44,7 +44,7 @@ class NameInput extends React.Component {
     if(!myNickname)
       return (
         <StyledModal>
-          <div>Enter a nickname and press enter</div>
+          <h2>Enter your nickname and press enter to join</h2>
           <form onSubmit={this.submitForm}>
             <StyledInput type="text" name="" id="" autoFocus />
           </form>

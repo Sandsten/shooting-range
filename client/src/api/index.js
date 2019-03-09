@@ -27,6 +27,14 @@ export const subscribeToNewTarget = cb => {
   socket.on('newTarget', target => cb(target));
 }
 
+export const subscribeToWinner = cb => {
+  socket.on('winner', winner => cb(winner));
+}
+
+export const subscribeToWaitForNextRound = cb => {
+  socket.on('waitingForNextRound', timer => cb(timer));
+}
+
 export const subscribeToMyID = cb => {
   socket.on('myID', myID => cb(myID));
 }

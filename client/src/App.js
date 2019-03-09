@@ -10,7 +10,9 @@ import {
   subscribeToNewTarget,
   subscribeToScoreboard,
   subscribeToMyID,
-  unsubscribeFromAll
+  unsubscribeFromAll,
+  subscribeToWinner,
+  subscribeToWaitForNextRound
 } from './api'
 
 import {
@@ -21,6 +23,7 @@ import {
 
 import { LoadImage } from './Helpers/Loaders'
 import NameInput from './Components/NameInput'
+import { compare } from './Helpers/sorter'
 
 import crosshair from './img/crosshair_15.png'
 import bullethole from './img/bullet_hole_small_2.png'
@@ -34,21 +37,46 @@ const Grid = styled.div`
 
   grid-template-columns: 100px ${1920 * .6 + 5}px auto;
   grid-template-rows: 1fr auto 1fr;
-  grid-template-areas: ". . ." ". gameboard scoreboard" ". . .";
+  grid-template-areas: ". information ." ". gameboard scoreboard" ". . .";
 `
-
-const Scoreboard = styled.ol`
+const Scoreboard = styled.div`
   grid-area: scoreboard;
   justify-self: start;
   align-self: start;
 `
-
 const Gameboard = styled.canvas`
   grid-area: gameboard;
   background-color: gray;
   cursor: none;
   border: 5px solid black;
 `
+const Information = styled.div`
+  grid-area: information;
+  font-size: 25px;
+`
+const StyledWinner = styled.div`
+  grid-area: gameboard;
+  justify-self: center;
+  align-self: center;
+  font-size: 35px;
+  z-index: 1000;
+
+  justify-items: center;
+`
+
+const Winner = props => {
+  const { winner, timer } = props;
+  if (winner)
+    return (
+      <StyledWinner>
+        <div>{`${winner.nickname} is the winner!`}</div>
+        <div>{`Next round in: ${timer} `}</div>
+      </StyledWinner>
+    );
+
+  return null;
+}
+
 
 class App extends Component {
   constructor(props) {
@@ -56,6 +84,8 @@ class App extends Component {
     this.state = {
       myID: '',
       myNickname: null,
+      winner: null,
+      nextRoundTimer: null,
       players: [],
       bulletHoles: [],
       haveIFiredThisRound: false,
@@ -73,16 +103,18 @@ class App extends Component {
   componentDidMount() {
     // Subscribe to all server events
     subscribeToMousePositions(players => { this.setState({ players }); });
-    subscribeToShotsFired(bulletHoles => { this.setState({ bulletHoles }) });
+    subscribeToShotsFired(bulletHoles => { this.setState({ bulletHoles }); });
     subscribeToNewTarget(target => {
       this.setState({ target },
         () => this.setState({ haveIFiredThisRound: false }));
     })
-    subscribeToScoreboard(scoreboard => { this.setState({ scoreboard }); })
-    subscribeToMyID(myID => { this.setState({ myID }); })
+    subscribeToScoreboard(scoreboard => { this.setState({ scoreboard }); });
+    subscribeToWinner(winner => { this.setState({ winner }); });
+    subscribeToWaitForNextRound(nextRoundTimer => this.setState({ nextRoundTimer }));
+    subscribeToMyID(myID => { this.setState({ myID }); });
 
     // Load images
-    LoadImage(crosshair, image => { this.setState({ crosshairIMG: image }) });
+    LoadImage(crosshair, image => { this.setState({ crosshairIMG: image }); });
     LoadImage(bullethole, image => { this.setState({ bulletHoleIMG: image }); });
 
     this.setState({ canvasContext: this.canvas.getContext('2d') })
@@ -171,6 +203,13 @@ class App extends Component {
 
     return (
       <Grid>
+        <Information>
+          <h3>Online shooting range</h3>
+          First hit: 5p.  Second hit: 3p. Third hit: 2p. Rest 1p. Target miss: -2p <br/>
+          One shot per target <br/>
+          First to 30p winns the round!<br/>
+        </Information>
+        <Winner winner={this.state.winner} timer={this.state.nextRoundTimer} />
         <NameInput
           onSubmit={
             name => this.setState({ myNickname: name },
@@ -185,13 +224,16 @@ class App extends Component {
           ref={ref => this.canvas = ref}
         />
         <Scoreboard>
-          {scoreboard.map(player => {
-            return (
-              <li key={player.id}>
-                {`${player.score} : ${player.id === this.state.myID ? '(You)' : ''} ${player.nickname} `}
-              </li>
-            );
-          })}
+          <h1 style={{marginLeft: '20px', marginTop: 0}}>Scoreboard</h1>
+          <ol>
+            {scoreboard.sort(compare).map(player => {
+              return (
+                <li key={player.id} style={{fontSize: '20px'}}>
+                  {`${player.score} : ${player.id === this.state.myID ? '(You)' : ''} ${player.nickname} `}
+                </li>
+              );
+            })}
+          </ol>
         </Scoreboard>
       </Grid>
     );
