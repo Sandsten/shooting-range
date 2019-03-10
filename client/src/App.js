@@ -212,7 +212,7 @@ class App extends Component {
           </div>
         </Information>
         <Creator>
-          <h2>Created with React, Nodejs and sockets.io. <br/>Get the code on <a href="https://github.com/Sandsten/ShootingRange">Github</a></h2>
+          <h2>Created with React, Nodejs and socket.io. <br/>Get the code on <a href="https://github.com/Sandsten/ShootingRange">Github</a></h2>
         </Creator>
         <Winner winner={this.state.winner} timer={this.state.nextRoundTimer} />
         <NameInput
