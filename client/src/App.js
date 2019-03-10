@@ -22,11 +22,14 @@ import {
 } from './Helpers/RenderFunctions';
 
 import { LoadImage } from './Helpers/Loaders'
-import NameInput from './Components/NameInput'
 import { compare } from './Helpers/sorter'
+import { playGunSound } from './Helpers/SoundEffects'
+import Sounds from './Components/Sounds'
+import NameInput, { StyledModal } from './Components/NameInput'
 
 import crosshair from './img/crosshair_15.png'
 import bullethole from './img/bullet_hole_small_2.png'
+import cowboyTown from './img/cowboy_town.jpg'
 
 const Grid = styled.div`
   height: 100vh;
@@ -37,7 +40,7 @@ const Grid = styled.div`
 
   grid-template-columns: 100px ${1920 * .6 + 5}px auto;
   grid-template-rows: 1fr auto 1fr;
-  grid-template-areas: ". information ." ". gameboard scoreboard" ". . .";
+  grid-template-areas: ". information creator" ". gameboard scoreboard" ". settings .";
 `
 const Scoreboard = styled.div`
   grid-area: scoreboard;
@@ -49,34 +52,31 @@ const Gameboard = styled.canvas`
   background-color: gray;
   cursor: none;
   border: 5px solid black;
+  background-image: url(${cowboyTown});
+  background-size: ${1920 * .6 + 5}px ${1080 * .6 + 5}px;
 `
 const Information = styled.div`
   grid-area: information;
   font-size: 25px;
 `
-const StyledWinner = styled.div`
-  grid-area: gameboard;
-  justify-self: center;
-  align-self: center;
-  font-size: 35px;
-  z-index: 1000;
-
-  justify-items: center;
+const Creator = styled.div`
+  grid-area: creator;
+  align-self: start;
 `
 
 const Winner = props => {
   const { winner, timer } = props;
   if (winner)
     return (
-      <StyledWinner>
-        <div>{`${winner.nickname} is the winner!`}</div>
-        <div>{`Next round in: ${timer} `}</div>
-      </StyledWinner>
+      <StyledModal style={{padding: '0 10px 0 10px'}}>
+        <div style={{ fontSize: '50px' }}>{winner.nickname}</div>
+        <div style={{ fontSize: '30px' }}>{`is the fastest gunslinger`}</div>
+        <div style={{ fontSize: '40px' }}>{`Next round in: ${Math.floor(timer / 1000)}`}</div>
+      </StyledModal>
     );
 
   return null;
 }
-
 
 class App extends Component {
   constructor(props) {
@@ -136,6 +136,7 @@ class App extends Component {
     if (this.state.myNickname && !this.state.haveIFiredThisRound) {
       sendMouseClickPosition(mPos);
       this.setState({ haveIFiredThisRound: true });
+      playGunSound();
     }
   }
 
@@ -204,11 +205,15 @@ class App extends Component {
     return (
       <Grid>
         <Information>
-          <h3>Online shooting range</h3>
-          First hit: 5p.  Second hit: 3p. Third hit: 2p. Rest 1p. Target miss: -2p <br/>
-          One shot per target <br/>
-          First to 30p winns the round!<br/>
+          <h3>High noon online western saloon shooter bounty game V4.74</h3>
+          <div style={{ fontSize: '20px' }}>
+            Bounty received is based on who hits the target first.<br /> 1:st +50$.  2:nd +30$.   3:rd +20$.  Rest +10$.  Target miss: -20$<br />
+            Aim carefully, you only get one shot per target. First one to receive a total bounty of 350$ or more wins the round.
+          </div>
         </Information>
+        <Creator>
+          <h2>Created with React, Nodejs and sockets.io. <br/>Get the code on <a href="https://github.com/Sandsten/ShootingRange">Github</a></h2>
+        </Creator>
         <Winner winner={this.state.winner} timer={this.state.nextRoundTimer} />
         <NameInput
           onSubmit={
@@ -223,13 +228,15 @@ class App extends Component {
           onMouseLeave={this.stopTrackingMousePos}
           ref={ref => this.canvas = ref}
         />
+        <Sounds />
         <Scoreboard>
-          <h1 style={{marginLeft: '20px', marginTop: 0}}>Scoreboard</h1>
+          <h1 style={{ marginLeft: '20px', marginTop: 0 }}>Most wanted - First to 350$ wins</h1>
           <ol>
             {scoreboard.sort(compare).map(player => {
               return (
-                <li key={player.id} style={{fontSize: '20px'}}>
-                  {`${player.score} : ${player.id === this.state.myID ? '(You)' : ''} ${player.nickname} `}
+                <li key={player.id} style={{ fontSize: '20px' }}>
+                  <span>{`${player.nickname} ${player.id === this.state.myID ? '(You)' : ''}`}</span>
+                  <span style={{ marginLeft: '20px' }}>{`Bounty: ${player.score}$`}</span>
                 </li>
               );
             })}

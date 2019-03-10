@@ -33,7 +33,7 @@ var clockStart = Date.now();
 var prevTime = Date.now();
 var roundTime = 6000;
 var countdown = 0;
-var winningScore = 30;
+var winningScore = 350;
 var winConditionReached = false;
 var nextRoundWaitTime = 10000;
 var nextRoundCountdown = null;
@@ -58,13 +58,13 @@ io.on('connection', socket => {
     var points = 1;
     if (didShotHitTarget(shot)) {
       // Give points based on who hit the target first
-      if (shotsOnTarget === 0) points = 5;
-      if (shotsOnTarget === 1) points = 3;
-      if (shotsOnTarget === 2) points = 2;
-      shotsOnTarget += 1;
+      if (shotsOnTarget === 0) points = 50;
+      if (shotsOnTarget === 1) points = 30;
+      if (shotsOnTarget === 2) points = 20;
+      shotsOnTarget += 10;
     } else {
       // Subtract points if miss
-      points = -2;
+      points = -20;
     }
     updateScore(shot, points);
 
@@ -92,6 +92,9 @@ updateScore = (shot, score) => {
   for (var i = 0; i < updatedPlayers.length; i++) {
     if (updatedPlayers[i].id === shot.player.id) {
       updatedPlayers[i].score += score;
+      if(updatedPlayers[i].score < 0) {
+        updatedPlayers[i].score = 0;
+      }
       if(updatedPlayers[i].score >= winningScore){
         winConditionReached = true;
         io.emit('winner', updatedPlayers[i]);

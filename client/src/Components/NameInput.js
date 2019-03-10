@@ -1,7 +1,7 @@
 import React from 'react'
 import styled from 'styled-components'
 
-const StyledModal = styled.div`
+export const StyledModal = styled.div`
     grid-area: gameboard;
     z-index: 1000;
 
@@ -17,7 +17,11 @@ const StyledModal = styled.div`
     align-items: center;
     justify-items: center;
 
-    grid-template-rows: 100px 1fr;
+    grid-template-rows: 100px 1fr 1fr;
+`
+
+const Title = styled.div`
+  font-size: 40px;
 `
 
 const StyledInput = styled.input`
@@ -44,7 +48,7 @@ class NameInput extends React.Component {
     if(!myNickname)
       return (
         <StyledModal>
-          <h2>Enter your nickname and press enter to join</h2>
+          <Title>Wanted</Title>
           <form onSubmit={this.submitForm}>
             <StyledInput type="text" name="" id="" autoFocus />
           </form>
