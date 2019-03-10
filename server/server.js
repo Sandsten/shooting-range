@@ -55,13 +55,14 @@ io.on('connection', socket => {
       position: position
     }
     shotsFired.push(shot);
-    var points = 1;
+    var points;
     if (didShotHitTarget(shot)) {
       // Give points based on who hit the target first
       if (shotsOnTarget === 0) points = 50;
-      if (shotsOnTarget === 1) points = 30;
-      if (shotsOnTarget === 2) points = 20;
-      shotsOnTarget += 10;
+      else if (shotsOnTarget === 1) points = 30;
+      else if (shotsOnTarget === 2) points = 20;
+      else points = 10;
+      shotsOnTarget += 1;
     } else {
       // Subtract points if miss
       points = -20;

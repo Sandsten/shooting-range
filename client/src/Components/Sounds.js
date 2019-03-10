@@ -24,7 +24,7 @@ const SoundCredit = styled.a`
 class Sounds extends React.Component {
 
   state = {
-    playBackground: true,
+    playBackground: false,
   }
 
   backgroundSong = new Audio(westernSong);
