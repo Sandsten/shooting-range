@@ -205,7 +205,7 @@ class App extends Component {
     return (
       <Grid>
         <Information>
-          <h3>High noon online western saloon shooter bounty game V4.74</h3>
+          <h3>High noon online western saloon shooter bounty game V5.74</h3>
           <div style={{ fontSize: '20px' }}>
             Bounty received is based on who hits the target first.<br /> 1:st +50$.  2:nd +30$.   3:rd +20$.  Rest +10$.  Target miss: -20$<br />
             Aim carefully, you only get one shot per target. First one to receive a total bounty of 350$ or more wins the round.
